@@ -8,24 +8,19 @@ def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
 end
 
-# rubocop:disable Metrics/MethodLength
-
 def clean_phone_number(phone_number)
   clean_num = phone_number.gsub(/[()-. ]/, '')
-  if clean_num.length < 10
-    '0000000000'
-  elsif clean_num.length == 11
-    if clean_num[0] == '1'
-      clean_num[1..]
-    else
-      '0000000000'
-    end
-  elsif clean_num.length > 11
-    '0000000000'
-  else
+  case clean_num.length
+  when 10
     clean_num
+  when 11
+    clean_num[1..] if clean_num[0] == '1'
+  else
+    '0000000000'
   end
 end
+
+# rubocop:disable Metrics/MethodLength
 
 def legislators_by_zipcode(zip)
   civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
