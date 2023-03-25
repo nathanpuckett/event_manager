@@ -34,7 +34,26 @@ def find_peak_hours(reg_hours)
 
   peak_hrs_srtd = peak_hours.sort_by { |_key, value| value }
 
-  "The peak registration hours are #{peak_hrs_srtd[-1][0]}, #{peak_hrs_srtd[-2][0]}, & #{peak_hrs_srtd[-3][0]}."  
+  "The peak registration hours are #{peak_hrs_srtd[-1][0]}00, #{peak_hrs_srtd[-2][0]}00, & #{peak_hrs_srtd[-3][0]}00."
+end
+
+def find_date(reg_date)
+  clean_date = reg_date[0..-7].split('/').map { |num| num.rjust(2, '0') }.join('-').insert(-3, '20')
+
+  Date.strptime(clean_date, '%m-%d-%Y')
+end
+
+def peak_weekday(dates)
+  weekday_arr = dates.map { |date| Date::DAYNAMES[date.wday] }
+
+  weekday_hash = weekday_arr.reduce(Hash.new(0)) do |day, instance|
+    day[instance] += 1
+    day
+  end
+
+  days_sorted = weekday_hash.sort_by { |_key, value| value }
+
+  "The peak registration days are #{days_sorted[-1][0]}, followed by #{days_sorted[-2][0]} & #{days_sorted[-3][0]}."
 end
 
 # rubocop:disable Metrics/MethodLength
@@ -78,6 +97,7 @@ template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
 
 reg_hours = []
+reg_dates = []
 
 contents.each do |row|
   id = row[0]
@@ -87,8 +107,8 @@ contents.each do |row|
 
   phone_number = clean_phone_number(row[:homephone])
 
-  reg_date = find_hour(row[:regdate])
-  reg_hours << reg_date
+  reg_hours << find_hour(row[:regdate])
+  reg_dates << find_date(row[:regdate])
 
   legislators = legislators_by_zipcode(zipcode)
 
@@ -99,3 +119,4 @@ contents.each do |row|
 end
 
 puts find_peak_hours(reg_hours)
+puts peak_weekday(reg_dates)
